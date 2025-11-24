@@ -1,0 +1,50 @@
+import random
+import string
+from collections import defaultdict
+
+
+alphabet = list(string.ascii_lowercase)
+alphabet.append(' ')
+permuted_alphabet = list(alphabet).copy()
+random.shuffle(permuted_alphabet)
+
+coding_table = dict()
+for i in range(0, len(alphabet)):
+    coding_table[alphabet[i]] = permuted_alphabet[i]
+
+msg = "hello everyone this is our first time to touch cryptography and its magics and we will see modern cryptography has a nice foundation of science instead of art despite its engineering nature but this is not for ceasar cipher which is not really strong as it is a deterministic encryption and unaviodably leaks too much statistics of plaintext thus not secure at all and as long as there are sufficient ciphertext it becomes extremelly easy to decide the cipher to learn all the underlying secrets you believe it or not this just happens"
+
+parsed_msg = list(msg)
+encoded_msg = list()
+
+for each in parsed_msg:
+    encoded_msg.append(coding_table[each])
+
+print(msg)
+print("".join(encoded_msg))
+
+
+
+# Try to break
+
+count_table = defaultdict(lambda: 0)
+for each in encoded_msg:
+    count_table[each] = count_table[each] + 1
+
+count_table = dict(sorted(count_table.items(), key=lambda item: item[1], reverse=True))
+
+print(count_table)
+
+alphabet_by_frequency = [' ', 'e', 't', 'a', 's', 'i', 'n', 'o', 'r', 'd', 'h', 'l', 'u', 'c', 'm', 'f', 'y', 'w', 'g', 'p', 'b', 'v', 'k', 'x', 'q', 'j', 'z']
+i  = 0
+for key in count_table:
+    count_table[key] =  alphabet_by_frequency[i]
+    i = i + 1
+
+print(count_table)
+
+broken_msg = list()
+for each in encoded_msg:
+    broken_msg.append(count_table[each])
+
+print("".join(broken_msg))
