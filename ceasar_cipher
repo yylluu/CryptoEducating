@@ -1,0 +1,22 @@
+import random
+import string
+
+alphabet = list(string.ascii_lowercase)
+alphabet.append(' ')
+permuted_alphabet = list(alphabet).copy()
+random.shuffle(permuted_alphabet)
+
+coding_table = dict()
+for i in range(0, len(alphabet)):
+    coding_table[alphabet[i]] = permuted_alphabet[i]
+
+msg = "hello everyone this is our very first time to learn cryptography and its magics"
+
+parsed_msg = list(msg)
+encoded_msg = list()
+
+for each in parsed_msg:
+    encoded_msg.append(coding_table[each])
+
+print(msg)
+print("".join(encoded_msg))
