@@ -1,0 +1,85 @@
+from Crypto.Cipher import AES
+from Crypto.Hash import HMAC, SHA256
+from Crypto.Random import get_random_bytes
+import math
+
+# 256-bit Hash Function
+data_1 = 'hello world'.encode()
+data_2 = 'this is a very very long string...  very very long string... but its hash digest according to SHA256 function will still be 256-bit'.encode()
+
+print(SHA256.new(data_1).digest().hex())
+print(SHA256.new(data_2).digest().hex())
+
+
+# 256-bit Pseudorandom Function from HMAC
+hmac_key = get_random_bytes(16)
+out_1 = HMAC.new(hmac_key, msg=b'1', digestmod=SHA256).hexdigest()
+out_2 = HMAC.new(hmac_key, msg=b'2', digestmod=SHA256).hexdigest()
+out_3 = HMAC.new(hmac_key, msg=b'2', digestmod=SHA256).hexdigest()
+out_4 = HMAC.new(hmac_key, msg=b'2', digestmod=SHA256).hexdigest()
+
+print(out_1)
+print(out_2)
+print(out_3)
+print(out_4)
+
+
+# Streaming Cipher from PRF
+def xor_bytes(a: bytes, b: bytes) -> bytes:
+    return bytes(x ^ y for x, y in zip(a, b))
+
+plaintext = \
+  '''It was the best of times, it was the worst of times, it was the age of \
+  wisdom, it was the age of foolishness, it was the epoch of belief, it was \
+  the epoch of incredulity, it was the season of Light, it was the season of \
+  Darkness, it was the spring of hope, it was the winter of despair, we had \
+  everything before us, we had nothing before us, we were all going direct \
+  to Heaven, we were all going direct the other way—in short, the period \
+  was so far like the present period, that some of its noisiest authorities \
+  insisted on its being received, for good or for evil, in the superlative \
+  degree of comparison only.'''.encode()
+
+print("plaintext: ", plaintext)
+
+num_blocks = int(len(plaintext) / 32) + 1
+
+prf_key = get_random_bytes(16)
+
+cipher_blocks = [None] * num_blocks
+
+for i in range(0, num_blocks):
+  block_key = HMAC.new(prf_key, msg=str(i).encode(), digestmod=SHA256)
+  cipher_blocks[i] = xor_bytes(plaintext[32*i: 32*(i+1)], block_key.digest())
+  
+decryption = b''
+for i in range(0, num_blocks):
+  block_key = HMAC.new(prf_key, msg=str(i).encode(), digestmod=SHA256)
+  decryption = decryption + xor_bytes(cipher_blocks[i], block_key.digest())
+  
+print("decryption: ", decryption)
+
+
+
+# Finite Cyclic Group
+
+from Crypto.PublicKey import ECC
+
+curve = ECC._curves["P-256"]        # built-in curve parameters y^2 ≡ x^3 + a*x + b ≡ x^3 - 3*x + b (modp)
+G = curve.G                         # generator point (EccPoint)
+#p = curve.p   # field prime
+#b = curve.b
+#a = (-3) % int(p)
+#print(a)
+#print(b)
+# print(p)
+
+k = 674674243523                       # an example scalar
+P = k * G                           # scalar multiplication
+
+Q = (k+1) * G                       # another point
+R = P + Q                           # point addition
+S = -P                              # negation
+
+print("G =", G, G.x, G.y)
+print("kG =", P, P.x, P.y)
+print("P + Q =", R, R.x, R.y)
