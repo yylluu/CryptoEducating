@@ -60,26 +60,70 @@ print("decryption: ", decryption)
 
 
 
-# Finite Cyclic Group
+# Finite Cyclic Group over ECC
 
 from Crypto.PublicKey import ECC
+from Crypto.Math.Numbers import Integer
+from Crypto.PublicKey.ECC import EccPoint
+from Crypto.Hash import SHA256
 
-curve = ECC._curves["P-256"]        # built-in curve parameters y^2 ≡ x^3 + a*x + b ≡ x^3 - 3*x + b (modp)
+curve = ECC._curves["P-256"]        # built-in curve parameters y^2 ≡ x^3 + a*x + b ≡ x^3 - 3*x + b (mod p)
 G = curve.G                         # generator point (EccPoint)
-#p = curve.p   # field prime
-#b = curve.b
-#a = (-3) % int(p)
-#print(a)
-#print(b)
+p = curve.p                         # field prime
+b = curve.b
+a = (p - Integer(3)) 
+
+# print(b)
 # print(p)
 
-k = 674674243523                       # an example scalar
+k = 674674243523                    # an example scalar
 P = k * G                           # scalar multiplication
 
 Q = (k+1) * G                       # another point
 R = P + Q                           # point addition
-S = -P                              # negation
+S = -R                              # negation => same x coordination, y is the other root of y.
 
-print("G =", G, G.x, G.y)
-print("kG =", P, P.x, P.y)
-print("P + Q =", R, R.x, R.y)
+print("G =", G.x, G.y)           # generator
+print("kG =", P.x, P.y)          # scalar multiplication
+print("P + Q =", R.x, R.y)       # addition
+print("-(P + Q) =", S.x, S.y)    # negation
+
+# y^2 mod p
+print((R.y * R.y) % p )
+print((S.y * S.y) % p )
+
+
+# x^3 + a*x + b (mod p)
+print((R.x * R.x * R.x + a * R.x + b) % curve.p)
+print((S.x * S.x * S.x + a * S.x + b) % curve.p)
+
+
+# Pseudo-random function from ECC Group
+
+def ecc_prf(key, msg):
+  
+  def hash_to_int(msg: bytes) -> int:
+    h = SHA256.new(msg).digest()
+    return Integer(int.from_bytes(h, 'big')) % p
+  
+  def hash_to_curve(msg: bytes, curve="P-256"):
+    while True:
+        x = hash_to_int(msg)
+        # y² = x³ + a x + b mod p
+        rhs = (pow(x, 3, p) + a * x + b) % p
+        # compute sqrt(rhs) mod p using Tonelli–Shanks
+        y = pow(rhs, (p + 1) // 4, p)   # p ≡ 3 mod 4 (true for P-256)
+        if (y * y) % p == rhs:
+            return EccPoint(Integer(x), Integer(y), curve)  # a valid point
+        msg = b"retry" + msg
+  
+  digest = hash_to_curve(msg)
+  return key * digest
+
+y = ecc_prf(7498265285234556597, b"my password")
+print(y.x)
+
+
+# ElGammal Public Key Encryption
+
+# Schnorr Signature
