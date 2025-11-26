@@ -60,12 +60,15 @@ print("decryption: ", decryption)
 
 
 
-# Finite Cyclic Group over ECC
+# Finite Cyclic Group
 
 from Crypto.PublicKey import ECC
 from Crypto.Math.Numbers import Integer
 from Crypto.PublicKey.ECC import EccPoint
 from Crypto.Hash import SHA256
+
+from Crypto.Random import get_random_bytes
+
 
 curve = ECC._curves["P-256"]        # built-in curve parameters y^2 ≡ x^3 + a*x + b ≡ x^3 - 3*x + b (mod p)
 G = curve.G                         # generator point (EccPoint)
@@ -98,6 +101,20 @@ print((R.x * R.x * R.x + a * R.x + b) % curve.p)
 print((S.x * S.x * S.x + a * S.x + b) % curve.p)
 
 
+# Diffie-Hellman Key Exchange
+
+alice = Integer(int.from_bytes(get_random_bytes(32), 'big')) % p
+A = alice * G
+
+bob = Integer(int.from_bytes(get_random_bytes(32), 'big')) % p
+B = bob * G
+
+S_alice = alice * B
+S_bob = bob * A
+
+print("Alice side: ", S_alice.x, S_alice.y)
+print("Bob side: ", S_bob.x, S_bob.y)
+
 # Pseudo-random function from ECC Group
 
 def ecc_prf(key, msg):
@@ -126,4 +143,24 @@ print(y.x)
 
 # ElGammal Public Key Encryption
 
+def key_gen():
+  r = get_random_bytes(32)
+  x = Integer(int.from_bytes(r, 'big')) % p
+  H = x * G
+  return x, H # private secret key,  public key
+
+x, H = key_gen()
+
+def encrypt(H, msg: bytes):
+  None
+
+def decrypt(x, ciphertext):
+  None
+
 # Schnorr Signature
+
+def sign(x, msg: bytes):
+  None
+
+def verify(H, sig, msg: bytes):
+  None
