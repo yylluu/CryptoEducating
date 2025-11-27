@@ -149,8 +149,6 @@ def key_gen():
   H = x * G
   return x, H # private secret key,  public key
 
-x, H = key_gen()
-
 def encrypt(H, msg: bytes):
   None
 
