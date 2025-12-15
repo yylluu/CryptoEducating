@@ -1,0 +1,27 @@
+import asyncio
+
+ 
+async def add(name, numbers):
+    sum = 0
+    for number in numbers:
+        print(f'Task {name}: Computing {sum}+{number}')
+        sum += number
+    print(f'Task {name}: Sum = {sum}\n')
+
+
+async def mul(name, numbers):
+    prod = 1
+    for number in numbers:
+        print(f'Task {name}: Computing {prod}*{number}')
+        prod += number
+    print(f'Task {name}: Prod = {prod}\n')
+
+
+loop = asyncio.new_event_loop()
+tasks = [
+    loop.create_task(add("Add", [1, 2])),
+    loop.create_task(mul("Mul", [1, 2, 3])),
+]
+
+loop.run_until_complete(asyncio.wait(tasks))
+loop.close()
