@@ -1,0 +1,25 @@
+import asyncio
+import random
+import time
+
+
+
+async def recv(name, queue):
+    while True:
+        msg = await queue.get()
+        return msg
+
+async def send(name, msg, queue):
+      queue.put_nowait(msg)
+      return msg
+
+async def main():
+  queue_a2b = asyncio.Queue()
+  queue_b2a = asyncio.Queue()
+  
+  await send("1st_send", "hello", queue_a2b)
+  msg = await recv("1st_recv", queue_a2b)
+  
+  print(msg)
+  
+asyncio.run(main())
